@@ -44,7 +44,7 @@ export default function AppHomePage() {
               ようこそ、GMさん（仮）
             </span>
             <Link
-              href="/me"
+              href="/account"
               className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-600 bg-slate-900 text-xs font-semibold text-slate-200 hover:border-indigo-400"
               aria-label="マイページへ"
             >
