@@ -27,7 +27,21 @@ export default function LoginPage() {
         idToken: idToken.slice(0, 20) + "...",
       });
 
-      //TODO: サーバー側と連携してセッションを確立する
+      const res = await fetch("http://localhost:3001/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ idToken }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`API login failed: ${res.status} ${res.statusText}`);
+      }
+
+      const data = await res.json();
+      console.log("API login success:", data);
+      // TODO: ユーザー情報をグローバルステートに保存するなどの処理を追加
 
     } catch (error) {
       console.error("Firebase login error:", error);
