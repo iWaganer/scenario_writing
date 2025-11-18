@@ -4,9 +4,11 @@ import { FormEvent } from "react";
 import { auth } from "@/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { EmailAuthCredential } from "firebase/auth/web-extension";
+import { routerServerGlobal } from "next/dist/server/lib/router-utils/router-server-context";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  // まだバックエンド未接続なのでダミーの submit ハンドラ
+  const router = useRouter();
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // TODO: API 接続したらここで fetch する
@@ -42,6 +44,8 @@ export default function LoginPage() {
       const data = await res.json();
       console.log("API login success:", data);
       // TODO: ユーザー情報をグローバルステートに保存するなどの処理を追加
+
+      router.push("/dashboard");
 
     } catch (error) {
       console.error("Firebase login error:", error);
