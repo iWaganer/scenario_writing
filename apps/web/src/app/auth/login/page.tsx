@@ -1,18 +1,39 @@
 "use client";
 import Link from "next/link";
 import { FormEvent } from "react";
+import { auth } from "@/lib/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { EmailAuthCredential } from "firebase/auth/web-extension";
 
 export default function LoginPage() {
   // まだバックエンド未接続なのでダミーの submit ハンドラ
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // TODO: API 接続したらここで fetch する
     // ひとまずコンソールに出すだけ
     const formData = new FormData(e.currentTarget);
-    console.log("login:", {
-      email: formData.get("email"),
-      password: formData.get("password"),
-    });
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const user = cred.user;
+
+      const idToken = await user.getIdToken();
+
+      console.log("Firebase login success:", {
+        uid: user.uid,
+        email: user.email,
+        idToken: idToken.slice(0, 20) + "...",
+      });
+
+      //TODO: サーバー側と連携してセッションを確立する
+
+    } catch (error) {
+      console.error("Firebase login error:", error);
+      // TODO: ユーザーにエラーメッセージを表示する
+      alert("ログインに失敗しました。メールアドレスとパスワードを確認してください。");
+    }
   };
 
   return (
