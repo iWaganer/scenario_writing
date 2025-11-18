@@ -1,18 +1,57 @@
 "use client";
 import Link from "next/link";
 import { FormEvent } from "react";
+import { auth } from "@/lib/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { EmailAuthCredential } from "firebase/auth/web-extension";
+import { routerServerGlobal } from "next/dist/server/lib/router-utils/router-server-context";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  // まだバックエンド未接続なのでダミーの submit ハンドラ
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const router = useRouter();
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // TODO: API 接続したらここで fetch する
     // ひとまずコンソールに出すだけ
     const formData = new FormData(e.currentTarget);
-    console.log("login:", {
-      email: formData.get("email"),
-      password: formData.get("password"),
-    });
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const user = cred.user;
+
+      const idToken = await user.getIdToken();
+
+      console.log("Firebase login success:", {
+        uid: user.uid,
+        email: user.email,
+        idToken: idToken.slice(0, 20) + "...",
+      });
+
+      const res = await fetch("http://localhost:3001/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ idToken }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`API login failed: ${res.status} ${res.statusText}`);
+      }
+
+      const data = await res.json();
+      console.log("API login success:", data);
+      // TODO: ユーザー情報をグローバルステートに保存するなどの処理を追加
+
+      router.push("/dashboard");
+
+    } catch (error) {
+      console.error("Firebase login error:", error);
+      // TODO: ユーザーにエラーメッセージを表示する
+      alert("ログインに失敗しました。メールアドレスとパスワードを確認してください。");
+    }
   };
 
   return (
